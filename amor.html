@@ -1,0 +1,547 @@
+<!doctype html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Para Mim</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Cormorant+Garamond:ital@1&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        background: #0e0308;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        touch-action: manipulation;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: radial-gradient(
+          ellipse 80% 70% at 50% 50%,
+          rgba(100, 15, 30, 0.45) 0%,
+          transparent 70%
+        );
+        pointer-events: none;
+        z-index: 0;
+      }
+      #scene {
+        position: relative;
+        width: min(100vw, 100svh);
+        height: min(100vw, 100svh);
+        max-width: 640px;
+        max-height: 640px;
+        z-index: 1;
+      }
+      canvas {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 2;
+      }
+
+      /* ── Photo ── */
+      #photo-frame {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 43%;
+        height: 43%;
+        z-index: 10;
+        outline: 1.5px solid #c9a96e;
+        box-shadow:
+          0 0 0 8px #0e0308,
+          0 0 0 9.5px rgba(201, 169, 110, 0.35),
+          0 0 60px rgba(0, 0, 0, 0.9),
+          0 0 80px rgba(100, 15, 30, 0.4);
+      }
+      #photo-frame img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* ── Labels ── */
+      #lbl-top {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, calc(-50% - 22vmin - 2.5vmin));
+        z-index: 20;
+        text-align: center;
+        pointer-events: none;
+      }
+      #lbl-top span {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: clamp(8px, 2.1vmin, 13px);
+        color: rgba(201, 169, 110, 0.55);
+        letter-spacing: 0.38em;
+        text-transform: uppercase;
+      }
+      #lbl-name {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, calc(-50% + 22vmin + 1.2vmin));
+        z-index: 20;
+        text-align: center;
+        pointer-events: none;
+        width: 90%;
+      }
+      #lbl-name .name {
+        font-family: "Great Vibes", cursive;
+        font-size: clamp(24px, 6.5vmin, 44px);
+        color: #e8c98a;
+        text-shadow:
+          0 0 22px rgba(201, 169, 110, 0.75),
+          0 2px 10px #000d;
+        display: block;
+        line-height: 1;
+      }
+      #lbl-name .sub {
+        font-family: "Cormorant Garamond", serif;
+        font-style: italic;
+        font-size: clamp(7px, 1.9vmin, 13px);
+        color: rgba(240, 215, 195, 0.45);
+        letter-spacing: 0.24em;
+        text-transform: uppercase;
+        display: block;
+        margin-top: 5px;
+      }
+
+      /* ── Heart ── */
+      #heart {
+        position: absolute;
+        bottom: 3%;
+        left: 4%;
+        z-index: 30;
+        font-size: clamp(18px, 5vmin, 28px);
+        color: #b03050;
+        animation: hb 1.8s ease-in-out infinite;
+        filter: drop-shadow(0 0 7px rgba(180, 40, 60, 0.9));
+      }
+      @keyframes hb {
+        0%,
+        100% {
+          transform: scale(1);
+        }
+        14% {
+          transform: scale(1.38);
+        }
+        28% {
+          transform: scale(1.02);
+        }
+        42% {
+          transform: scale(1.22);
+        }
+      }
+
+      /* ── Music button ── */
+      #mbtn {
+        position: absolute;
+        bottom: 2.5%;
+        right: 3.5%;
+        z-index: 30;
+        width: clamp(42px, 11vmin, 58px);
+        height: clamp(42px, 11vmin, 58px);
+        border-radius: 50%;
+        border: 1.5px solid rgba(201, 169, 110, 0.35);
+        background: rgba(8, 1, 4, 0.8);
+        backdrop-filter: blur(10px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: clamp(17px, 4.2vmin, 24px);
+        color: #c9a96e;
+        -webkit-tap-highlight-color: transparent;
+        transition:
+          border-color 0.3s,
+          box-shadow 0.3s;
+        user-select: none;
+      }
+      #mbtn.on {
+        border-color: rgba(201, 169, 110, 0.75);
+        animation: gmbtn 2.2s ease-in-out infinite;
+      }
+      @keyframes gmbtn {
+        0%,
+        100% {
+          box-shadow: 0 0 12px rgba(201, 169, 110, 0.25);
+        }
+        50% {
+          box-shadow: 0 0 28px rgba(201, 169, 110, 0.55);
+        }
+      }
+
+      /* ── Corners ── */
+      .corner {
+        position: absolute;
+        z-index: 25;
+        pointer-events: none;
+        width: 8vmin;
+        height: 8vmin;
+        opacity: 0.25;
+      }
+      .corner svg {
+        width: 100%;
+        height: 100%;
+      }
+      .tl {
+        top: 1.5%;
+        left: 1.5%;
+      }
+      .tr {
+        top: 1.5%;
+        right: 1.5%;
+        transform: scaleX(-1);
+      }
+      .bl {
+        bottom: 1.5%;
+        left: 1.5%;
+        transform: scaleY(-1);
+      }
+      .br {
+        bottom: 1.5%;
+        right: 1.5%;
+        transform: scale(-1);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="corner tl">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path
+          d="M3 37V3H37"
+          stroke="#c9a96e"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <circle cx="3" cy="3" r="2.2" fill="#c9a96e" />
+      </svg>
+    </div>
+    <div class="corner tr">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path
+          d="M3 37V3H37"
+          stroke="#c9a96e"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <circle cx="3" cy="3" r="2.2" fill="#c9a96e" />
+      </svg>
+    </div>
+    <div class="corner bl">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path
+          d="M3 37V3H37"
+          stroke="#c9a96e"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <circle cx="3" cy="3" r="2.2" fill="#c9a96e" />
+      </svg>
+    </div>
+    <div class="corner br">
+      <svg viewBox="0 0 40 40" fill="none">
+        <path
+          d="M3 37V3H37"
+          stroke="#c9a96e"
+          stroke-width="1.6"
+          stroke-linecap="round"
+        />
+        <circle cx="3" cy="3" r="2.2" fill="#c9a96e" />
+      </svg>
+    </div>
+
+    <div id="scene">
+      <canvas id="c"></canvas>
+
+      <div id="lbl-top"><span>para mim</span></div>
+
+      <div id="photo-frame">
+        <img src="https://i.ibb.co/p6kwfJP4/20260314-200409.avif" alt="foto" />
+      </div>
+
+      <div id="lbl-name">
+        <span class="name">Maria Vit&#xF3;ria</span>
+        <span class="sub">voc&#xEA; &eacute; tudo o que existe</span>
+      </div>
+
+      <div id="heart">&#9829;</div>
+
+      <div id="mbtn" onclick="toggleMusic()">&#9835;</div>
+    </div>
+
+    <!-- Local MP3 audio -->
+    <audio id="audio" loop preload="none" src="sozinho.mp3"></audio>
+
+    <script>
+      // ════════════════════════════════════════════════════════
+      //  MUSIC  — local MP3 file "sozinho.mp3"
+      // ════════════════════════════════════════════════════════
+      var audio = document.getElementById("audio");
+      var musicOn = false;
+
+      function toggleMusic() {
+        var btn = document.getElementById("mbtn");
+        if (!musicOn) {
+          audio
+            .play()
+            .then(function () {
+              musicOn = true;
+              btn.innerHTML = "&#9836;";
+              btn.classList.add("on");
+            })
+            .catch(function (e) {
+              console.warn("Audio error:", e);
+            });
+        } else {
+          audio.pause();
+          musicOn = false;
+          btn.innerHTML = "&#9835;";
+          btn.classList.remove("on");
+        }
+      }
+
+      // ════════════════════════════════════════════════════════
+      //  SQUARE SPIRAL CANVAS
+      // ════════════════════════════════════════════════════════
+      var canvas = document.getElementById("c");
+      var ctx = canvas.getContext("2d");
+
+      // Phrases — plain ASCII, legible script font
+      var WORDS = [
+        "meu amor",
+        " \u2665 ",
+        "minha vida",
+        " \u2665 ",
+        "meu tudo",
+        " \u2665 ",
+        "meu ceu",
+        " \u2665 ",
+        "minha paz",
+        " \u2665 ",
+        "meu mundo",
+        " \u2665 ",
+        "minha luz",
+        " \u2665 ",
+        "meu coracao",
+        " \u2665 ",
+        "para sempre",
+        " \u00b7 ",
+        "te amo",
+        " \u00b7 ",
+        "Maria Vitoria",
+        " \u00b7 ",
+        "minha alegria",
+        " \u00b7 ",
+        "minha pessoa",
+        " \u00b7 ",
+      ];
+      var BASE = WORDS.join("  ");
+      var FULL = "";
+      for (var i = 0; i < 40; i++) FULL += BASE + "  ";
+
+      var W,
+        H,
+        segs = [],
+        totLen = 0;
+
+      function resize() {
+        var sc = document.getElementById("scene");
+        W = canvas.width = sc.offsetWidth;
+        H = canvas.height = sc.offsetHeight;
+        buildSpiral();
+      }
+
+      function buildSpiral() {
+        segs = [];
+        totLen = 0;
+        var PAD = W * 0.033;
+        var GAP = W * 0.078;
+        var SAFE = W * 0.245;
+
+        var pts = [];
+        for (var r = 0; ; r++) {
+          var L = PAD + r * GAP,
+            T = PAD + r * GAP;
+          var R = W - PAD - r * GAP,
+            B = H - PAD - r * GAP;
+          if (R - L < SAFE * 2.15 || B - T < SAFE * 2.15) {
+            pts.push([L, T]);
+            break;
+          }
+          pts.push([L, T], [R, T], [R, B], [L, B]);
+        }
+        for (var i = 0; i < pts.length - 1; i++) {
+          var ax = pts[i][0],
+            ay = pts[i][1],
+            bx = pts[i + 1][0],
+            by = pts[i + 1][1];
+          var len = Math.sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
+          if (len < 1) continue;
+          segs.push({
+            x1: ax,
+            y1: ay,
+            x2: bx,
+            y2: by,
+            len: len,
+            ang: Math.atan2(by - ay, bx - ax),
+            cum: totLen,
+          });
+          totLen += len;
+        }
+      }
+
+      function posAt(d) {
+        d = ((d % totLen) + totLen) % totLen;
+        var lo = 0,
+          hi = segs.length - 1;
+        while (lo < hi) {
+          var m = (lo + hi) >> 1;
+          segs[m].cum + segs[m].len < d ? (lo = m + 1) : (hi = m);
+        }
+        var s = segs[lo],
+          t = Math.min((d - s.cum) / s.len, 1);
+        return {
+          x: s.x1 + (s.x2 - s.x1) * t,
+          y: s.y1 + (s.y2 - s.y1) * t,
+          ang: s.ang,
+        };
+      }
+
+      // Warm gold palette
+      var GOLDS = [
+        [248, 215, 152],
+        [255, 240, 200],
+        [215, 180, 120],
+        [255, 230, 178],
+        [230, 192, 132],
+      ];
+
+      var t0 = null,
+        scrollPx = 0;
+      var FILL_MS = 25000;
+      var SCROLL_PX = 0.12; // very slow drift
+
+      function frame(ts) {
+        if (!t0) t0 = ts;
+        var elapsed = ts - t0;
+        ctx.clearRect(0, 0, W, H);
+
+        var fillRatio = Math.min(elapsed / FILL_MS, 1);
+        var revealed = fillRatio * totLen;
+        scrollPx += SCROLL_PX;
+
+        // font — slightly larger, bold weight for legibility
+        var fsize = Math.max(15, W * 0.036);
+        var spacing = fsize * 0.85;
+
+        // ── Wine glow trail ──
+        if (revealed > 2) {
+          ctx.save();
+          ctx.strokeStyle = "rgba(60,6,16,0.38)";
+          ctx.lineWidth = fsize * 2.1;
+          ctx.lineCap = ctx.lineJoin = "round";
+          ctx.beginPath();
+          var drew = false;
+          for (var si = 0; si < segs.length; si++) {
+            var s = segs[si];
+            if (s.cum >= revealed) break;
+            var end = Math.min(s.cum + s.len, revealed);
+            var tt = (end - s.cum) / s.len;
+            if (!drew) {
+              ctx.moveTo(s.x1, s.y1);
+              drew = true;
+            }
+            ctx.lineTo(s.x1 + (s.x2 - s.x1) * tt, s.y1 + (s.y2 - s.y1) * tt);
+          }
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        // ── Characters ──
+        // Use Great Vibes at slightly larger size, with letter spacing via manual advance
+        ctx.font = "normal " + fsize + "px 'Great Vibes', cursive";
+        ctx.textBaseline = "middle";
+
+        var startDist = ((-scrollPx % totLen) + totLen) % totLen;
+        var ci0 = Math.floor(scrollPx / spacing);
+
+        var dist = startDist,
+          walked = 0,
+          ci = ci0;
+
+        while (walked <= revealed) {
+          var ch = FULL[ci % FULL.length] || " ";
+
+          // frontier fade-in
+          var frontier = revealed - walked;
+          var alpha = Math.min(frontier / (fsize * 7), 1) * 0.95;
+          if (alpha <= 0.01) break;
+
+          var pos = posAt(dist);
+          var col = GOLDS[ci % GOLDS.length];
+
+          ctx.save();
+          ctx.translate(pos.x, pos.y);
+          ctx.rotate(pos.ang);
+          ctx.fillStyle =
+            "rgba(" +
+            col[0] +
+            "," +
+            col[1] +
+            "," +
+            col[2] +
+            "," +
+            alpha.toFixed(3) +
+            ")";
+
+          var isSep = ch === "\u2665" || ch === "\u00b7" || ch === " ";
+          if (!isSep) {
+            // strong glow for legibility
+            ctx.shadowColor = "rgba(240,190,100,0.7)";
+            ctx.shadowBlur = 9;
+          } else {
+            ctx.shadowColor = "rgba(220,110,90,0.9)";
+            ctx.shadowBlur = 10;
+          }
+          ctx.fillText(ch, 0, 0);
+          ctx.restore();
+
+          // slightly wider spacing between words for readability
+          var advance = ch === " " ? spacing * 1.4 : spacing;
+          dist = (dist + advance) % totLen;
+          walked += advance;
+          ci++;
+        }
+
+        requestAnimationFrame(frame);
+      }
+
+      window.addEventListener("resize", resize);
+      resize();
+      requestAnimationFrame(frame);
+    </script>
+  </body>
+</html>
